@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import com.cursoJavaWeb.todosimple.models.Task;
 import com.cursoJavaWeb.todosimple.models.User;
 import com.cursoJavaWeb.todosimple.repositories.TaskRepository;
+import com.cursoJavaWeb.todosimple.services.exceptions.DataBindingViolatioExceptions;
+import com.cursoJavaWeb.todosimple.services.exceptions.ObjectNotFoundException;
 
 @Service
 public class TaskService {
@@ -23,7 +25,7 @@ public class TaskService {
 
     public Task findById(Long id) {
         Optional<Task> task = this.taskRepository.findById(id);
-        return task.orElseThrow(() -> new RuntimeException(
+        return task.orElseThrow(() -> new ObjectNotFoundException(
             "Anotacao nao encontrado! Id: " + id + ", Tipo: " + Task.class.getName()
         ));
     }
@@ -54,7 +56,7 @@ public class TaskService {
         try {
             this.taskRepository.deleteById(id);
         } catch (Exception e) {
-            throw new RuntimeException("Nao é possivel deletar pois ha entidades relacionadas!");
+            throw new DataBindingViolatioExceptions("Nao é possivel deletar pois ha entidades relacionadas!");
         }
     }
 }
