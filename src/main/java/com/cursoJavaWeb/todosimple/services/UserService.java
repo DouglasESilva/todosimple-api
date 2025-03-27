@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cursoJavaWeb.todosimple.models.User;
 import com.cursoJavaWeb.todosimple.models.enums.ProfileEnum;
 import com.cursoJavaWeb.todosimple.repositories.UserRepository;
-import com.cursoJavaWeb.todosimple.services.exceptions.DataBindingViolatioExceptions;
+import com.cursoJavaWeb.todosimple.services.exceptions.DataBindingViolationException;
 import com.cursoJavaWeb.todosimple.services.exceptions.ObjectNotFoundException;
 
 @Service
@@ -54,7 +54,7 @@ public class UserService {
         try {
             this.userRepository.deleteById(id);
         } catch (Exception e) {
-            throw new DataBindingViolatioExceptions("Nao é possivel excluir pos ha entidades realcionadas!");
+            throw new DataBindingViolationException("Nao é possivel excluir pos ha entidades realcionadas!");
         }
     }
 

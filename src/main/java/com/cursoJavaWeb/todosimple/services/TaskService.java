@@ -1,18 +1,23 @@
 package com.cursoJavaWeb.todosimple.services;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-
-import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.cursoJavaWeb.todosimple.models.Task;
 import com.cursoJavaWeb.todosimple.models.User;
+import com.cursoJavaWeb.todosimple.models.enums.ProfileEnum;
+//import com.cursoJavaWeb.todosimple.models.projection.TaskProjection;
 import com.cursoJavaWeb.todosimple.repositories.TaskRepository;
-import com.cursoJavaWeb.todosimple.services.exceptions.DataBindingViolatioExceptions;
+import com.cursoJavaWeb.todosimple.security.UserSpringSecurity;
+//import com.cursoJavaWeb.todosimple.services.exceptions.AuthorizationException;
+import com.cursoJavaWeb.todosimple.services.exceptions.DataBindingViolationException;
 import com.cursoJavaWeb.todosimple.services.exceptions.ObjectNotFoundException;
+
 
 @Service
 public class TaskService {
@@ -56,7 +61,11 @@ public class TaskService {
         try {
             this.taskRepository.deleteById(id);
         } catch (Exception e) {
-            throw new DataBindingViolatioExceptions("Nao é possivel deletar pois ha entidades relacionadas!");
+            throw new DataBindingViolationException("Nao é possivel deletar pois ha entidades relacionadas!");
         }
+    }
+
+    private Boolean userHasTask(UserSpringSecurity userSpringSecurity, Task task) {
+        return task.getUser().getId().equals(userSpringSecurity.getId());
     }
 }

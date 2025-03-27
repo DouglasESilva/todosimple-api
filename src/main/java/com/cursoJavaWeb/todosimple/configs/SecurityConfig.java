@@ -19,7 +19,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.cursoJavaWeb.todosimple.security.JWTAuthenticationFilter;
+//import com.cursoJavaWeb.todosimple.security.JWTAuthorizationFilter;
 import com.cursoJavaWeb.todosimple.security.JWTUtil;
+
 
 @Configuration
 @EnableWebSecurity
@@ -30,7 +33,7 @@ public class SecurityConfig {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private UserDetailsService userDatailsService;
+    private UserDetailsService userDetailsService;
 
     @Autowired
     private JWTUtil jwtUtil;
@@ -44,23 +47,29 @@ public class SecurityConfig {
         "/login"
     };
 
-    //@Bean
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.cors().and().csrf().disable();
+            http.cors().and().csrf().disable();
 
-        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(this.userDatailsService)
-            .passwordEncoder(bCryptPasswordEncoder());
-        this.authenticationManager = authenticationManagerBuilder.build();
+            AuthenticationManagerBuilder authenticationManagerBuilder = http
+                            .getSharedObject(AuthenticationManagerBuilder.class);
+            authenticationManagerBuilder.userDetailsService(this.userDetailsService)
+                            .passwordEncoder(bCryptPasswordEncoder());
+            this.authenticationManager = authenticationManagerBuilder.build();
 
-        http.authorizeRequests(requests -> requests.antMatchers(HttpMethod.POST, PUBLIC_MATCHERS_POST).permitAll()
-                .antMatchers(PUBLIC_MATCHERS).permitAll()
-                .anyRequest().authenticated());
+            http.authorizeRequests()
+                            .antMatchers(HttpMethod.POST, PUBLIC_MATCHERS_POST).permitAll()
+                            .antMatchers(PUBLIC_MATCHERS).permitAll()
+                            .anyRequest().authenticated().and()
+                            .authenticationManager(authenticationManager);
 
-        http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            http.addFilter(new JWTAuthenticationFilter(this.authenticationManager, this.jwtUtil));
+            //http.addFilter(new JWTAuthorizationFilter(this.authenticationManager, this.jwtUtil, this.userDetailsService));
 
-        return http.build();
+            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+            return http.build();
     }
 
     @Bean
