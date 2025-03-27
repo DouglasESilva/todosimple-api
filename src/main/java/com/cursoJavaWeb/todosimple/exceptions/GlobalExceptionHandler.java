@@ -14,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.validation.FieldError;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.cursoJavaWeb.todosimple.services.exceptions.AuthorizationException;
 import com.cursoJavaWeb.todosimple.services.exceptions.DataBindingViolationException;
 import com.cursoJavaWeb.todosimple.services.exceptions.ObjectNotFoundException;
 
@@ -88,24 +90,52 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler imple
     @ExceptionHandler(ObjectNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<Object> handleObjectNotFoundException ( ObjectNotFoundException objectNotFoundException, WebRequest request) {
-        log.error("Failed to find the requested element", objectNotFoundException);
+        log.error("Failed to find the requested element ", objectNotFoundException);
         return buildErrorResponse(objectNotFoundException, HttpStatus.NOT_FOUND, request);
     }
 
     @ExceptionHandler(DataBindingViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseEntity<Object> handleDataBindingViolationException ( DataBindingViolationException dataBindingViolatioExceptions, WebRequest request) {
-        log.error("Failed to save entity with associated date", dataBindingViolatioExceptions);
+        log.error("Failed to save entity with associated date ", dataBindingViolatioExceptions);
         return buildErrorResponse(dataBindingViolatioExceptions, HttpStatus.CONFLICT, request);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<Object> handleAuthenticationException(AuthenticationException authenticationException, WebRequest request) {
+        log.error("Authetication error ", authenticationException);
+        return buildErrorResponse(authenticationException, HttpStatus.UNAUTHORIZED, request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<Object> handleAccessDeniedException(
+            AccessDeniedException accessDeniedException,
+            WebRequest request) {
+        log.error("Authorization error ", accessDeniedException);
+        return buildErrorResponse(
+                accessDeniedException,
+                HttpStatus.FORBIDDEN,
+                request);
+    }
+
+    @ExceptionHandler(AuthorizationException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<Object> handleAuthorizationException(
+            AuthorizationException authorizationException,
+            WebRequest request) {
+        log.error("Authorization error ", authorizationException);
+        return buildErrorResponse(
+                authorizationException,
+                HttpStatus.FORBIDDEN,
+                request);
     }
 
 
     private ResponseEntity<Object> buildErrorResponse(Exception exception, HttpStatus httpStatus, WebRequest request) {
         return buildErrorResponse(exception, exception.getMessage(), httpStatus, request);
     }
-
-
-
 
     private ResponseEntity<Object> buildErrorResponse( Exception exception, String message, HttpStatus httpStatus, WebRequest request) {
             ErrorResponse errorResponse = new ErrorResponse(httpStatus.value(), message);
